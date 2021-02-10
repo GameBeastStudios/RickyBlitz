@@ -1,0 +1,50 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class PauseMenuController : MonoBehaviour
+{
+    public GameObject pauseMenuUI;
+    public GameObject achievementsMenuUI;
+    public GameObject optionsMenuUI;
+
+    public GameState gameState;
+
+    // Update is called once per frame
+    void Update()
+    {
+        //Pause Function
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (gameState.gameIsPaused)
+            {
+                Resume();
+            }else
+            {
+                Pause();
+            }
+        }
+    }
+    public void Resume ()
+    {
+        pauseMenuUI.SetActive(false);
+        achievementsMenuUI.SetActive(false);
+        optionsMenuUI.SetActive(false);
+        Time.timeScale = 1f;
+        gameState.gameIsPaused = false;
+    }
+    void Pause ()
+    {
+        pauseMenuUI.SetActive(true);
+        Time.timeScale = 0f;
+        gameState.gameIsPaused = true;
+    }
+    public void LoadMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+    }
+    public void SaveGame()
+    {
+        Debug.Log("Saving Game...");
+    }
+}

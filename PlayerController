@@ -1,0 +1,149 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    public Rigidbody2D rb;
+
+    public float moveSpeed = 10f;
+
+    public float jumpForce = 10f;
+
+    public Transform groundCheck;
+    public LayerMask groundLayer;
+    public float groundRadius = 0.2f;
+    bool isGrounded = false;
+
+    public float wallJumpTime = 0.2f;
+    public float wallSlideSpeed = 0.3f;
+    public float wallDistance = 0.5f;
+    bool isWallSliding = false;
+    RaycastHit2D WallCheckHit;
+    
+    public float jumpTime;
+    private float _jumpTimeCounter;
+    private bool _isJumping;
+
+
+    float mx = 0f;
+    bool isFacingRight = true;
+
+    public ParticleSystem dust;
+
+    public GameState gameState;
+
+    void Start()
+    {
+        gameState.gameIsPaused = false;    
+    }
+    void Update()
+    {
+        //Calling Jump Method
+        //Create Dust
+        //Hold Space for Higher Jump Method
+        if (isGrounded && Input.GetKeyDown(KeyCode.Space) || isWallSliding && Input.GetKeyDown(KeyCode.Space))
+        {
+
+            Jump();
+            CreateDust();
+            if (Input.GetKey(KeyCode.Space) && _isJumping == true)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                if(_jumpTimeCounter > 0)
+                {
+                    rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                    _jumpTimeCounter -= Time.deltaTime;
+                } else
+                {
+                    _isJumping = false;
+                }
+            }
+        }
+        //Slow-Motion Effect
+        if (!gameState.gameIsPaused)
+        {
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                Time.timeScale = 0.55f;
+            }
+            if (Input.GetKeyUp(KeyCode.LeftShift))
+            {
+                Time.timeScale = 1f;
+            }
+        }
+
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            _isJumping = false;
+        }
+    }
+
+    void FixedUpdate()
+    {
+        //Flip Method
+        mx = Input.GetAxis("Horizontal");
+        
+        if(mx < 0)
+        {
+            isFacingRight = false;
+            transform.localScale = new Vector2(-1, transform.localScale.y);
+        }else
+        {
+            isFacingRight = true;
+            transform.localScale = new Vector2(1, transform.localScale.y);
+        }
+
+        rb.velocity = new Vector2(mx * moveSpeed, rb.velocity.y);
+
+        bool touchingGround = Physics2D.OverlapCircle(groundCheck.position, groundRadius, groundLayer);
+
+
+        if(touchingGround)
+        {
+            isGrounded = true;
+        }
+        else 
+        {
+            isGrounded = false;
+        }
+        //Wall Slide and Wall Climb
+        if(isFacingRight)
+        {
+            WallCheckHit = Physics2D.Raycast(transform.position, new Vector2(wallDistance, 0), wallDistance, groundLayer);
+            //Debug.DrawRay(transform.position, new Vector2(wallDistance, 0), Color.blue);
+        }
+        else
+        {
+            WallCheckHit = Physics2D.Raycast(transform.position, new Vector2(-wallDistance, 0), wallDistance, groundLayer);
+            //Debug.DrawRay(transform.position, new Vector2(-wallDistance, 0), Color.blue);
+        }
+
+        if (WallCheckHit && !isGrounded && mx != 0)
+        {
+            isWallSliding = true;
+            jumpTime = Time.time + wallJumpTime;
+        }else if (jumpTime < Time.time)
+        {
+            isWallSliding = false;
+        }
+        if (isWallSliding)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, wallSlideSpeed, float.MaxValue));
+        }
+    }
+    //Jump Method Code
+    void Jump()
+    {
+        rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+        _isJumping = true;
+        _jumpTimeCounter = jumpTime;
+    }
+    //Player Dust
+    void CreateDust()
+    {
+        dust.Play();
+    }
+
+
+}

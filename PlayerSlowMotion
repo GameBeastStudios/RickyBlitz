@@ -1,0 +1,99 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+using System.Threading;
+
+public class PlayerSlowMotionAbility : MonoBehaviour
+{
+    [Header("Slow-Mo Ability")]
+    public GameState gameState;
+    public float slowMotionSpeed;
+    public int slowMotionTimer;
+
+    [Header("Slo-Mo Bar")]
+    public int slowBarMax; //Max time that you can slow down time for
+    public int slowBarMin; //Min time that you can slow down time for
+    public float currentSlowValue; //How much time you have left that you can slow down
+    public float timeStart;
+
+    void Start()
+    {
+        gameState.gameIsPaused = false; //Make sure game is playing so that pause can work
+
+        slowMotionTimer = 0;
+        slowBarMax = 15;
+        slowBarMin = 0;
+        slowMotionSpeed = 0.5f;
+        currentSlowValue = slowBarMin;
+    }
+    IEnumerator waiter()
+    {
+        if (!gameState.gameIsPaused)
+        {
+            if (Input.GetKey(KeyCode.E) && currentSlowValue > 0) //If game is not paused, and the user presses the e key, and they have more than 0 time left to slow down.
+            {
+
+                for (int i = 0; i < currentSlowValue; i++)
+                {
+                    if (Input.GetKeyUp(KeyCode.E)) //Reset time once player lets go of key. and then break loop
+                    {
+                        Time.timeScale = 1f;
+                        break;
+                    }
+
+                    if (currentSlowValue <= 0)
+                    {
+                        Time.timeScale = 1f;
+                        Debug.Log("You need more time value!"); //*
+                        break;
+                    }
+
+                    Time.timeScale = slowMotionSpeed; //Slow Down the game equal to SlowMotionSpeed
+                    currentSlowValue -= 1; //Decrease the seconds that you can slow down for
+
+                    yield return new WaitForSeconds(1); //Wait 1 second
+                    Debug.Log(currentSlowValue); //*
+                }
+            }
+
+            if (Input.GetKeyUp(KeyCode.E))
+            {
+                Time.timeScale = 1;
+            }
+
+            if (currentSlowValue <= 0)
+            {
+                Time.timeScale = 1;
+                currentSlowValue = 0;
+            }
+        }
+    }
+
+    public void Update()
+    {
+
+    }
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (currentSlowValue < slowBarMax)
+        { //Make sure the user can't get more slow than the max value
+            //Check if player collides with HourGlass tagged objects then destroy it if they did
+            if (other.gameObject.CompareTag("HourGlass"))
+            {
+                Destroy(other.gameObject);
+                if (currentSlowValue < slowBarMax) //This way the user can stack too much of the slow effect
+                {
+                    //Increase CurrentSlowValue by 5 for each pickup
+                    currentSlowValue += 5;
+                    Debug.Log(currentSlowValue); //*
+
+                    //If CurrentSlowValue goes over 15 automaticaly bring it back down
+                    if (currentSlowValue > slowBarMax)
+                    {
+                        currentSlowValue = slowBarMax;
+                    }
+                }
+            }
+        }
+    }
+}

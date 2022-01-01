@@ -28,50 +28,62 @@ public class PlayerSlowMotionAbility : MonoBehaviour
     }
     IEnumerator waiter()
     {
-        if (!gameState.gameIsPaused)
+        for (int i = 0; i < currentSlowValue; i++)
         {
-            if (Input.GetKey(KeyCode.E) && currentSlowValue > 0) //If game is not paused, and the user presses the e key, and they have more than 0 time left to slow down.
+            if (Input.GetKeyUp(KeyCode.E)) //Reset time once player lets go of key. and then break loop
             {
-
-                for (int i = 0; i < currentSlowValue; i++)
-                {
-                    if (Input.GetKeyUp(KeyCode.E)) //Reset time once player lets go of key. and then break loop
-                    {
-                        Time.timeScale = 1f;
-                        break;
-                    }
-
-                    if (currentSlowValue <= 0)
-                    {
-                        Time.timeScale = 1f;
-                        Debug.Log("You need more time value!"); //*
-                        break;
-                    }
-
-                    Time.timeScale = slowMotionSpeed; //Slow Down the game equal to SlowMotionSpeed
-                    currentSlowValue -= 1; //Decrease the seconds that you can slow down for
-
-                    yield return new WaitForSeconds(1); //Wait 1 second
-                    Debug.Log(currentSlowValue); //*
-                }
-            }
-
-            if (Input.GetKeyUp(KeyCode.E))
-            {
-                Time.timeScale = 1;
+                Time.timeScale = 1f;
+                break;
             }
 
             if (currentSlowValue <= 0)
             {
-                Time.timeScale = 1;
-                currentSlowValue = 0;
+                Time.timeScale = 1f;
+                Debug.Log("You need more time value!"); //*
+                break;
             }
+
+            Time.timeScale = slowMotionSpeed; //Slow Down the game equal to SlowMotionSpeed
+            currentSlowValue -= 1; //Decrease the seconds that you can slow down for
+
+            yield return new WaitForSecondsRealtime(1); //Wait 1 second
+
+            Debug.Log(currentSlowValue); //*
+        }
+        if (Input.GetKeyUp(KeyCode.E))
+        {
+            Time.timeScale = 1;
+        }
+
+        if (currentSlowValue <= 0)
+        {
+            Time.timeScale = 1;
+            currentSlowValue = 0;
         }
     }
 
+
+
     public void Update()
     {
+        if (!gameState.gameIsPaused)
+        {
+            if (Input.GetKey(KeyCode.E) && currentSlowValue > 0)
+            { //If game is not paused, and the user presses the e key, and they have more than 0 time left to slow down.
+                StartCoroutine(waiter());
+            }
+        }
 
+        if (Input.GetKeyUp(KeyCode.E))
+        {
+            Time.timeScale = 1;
+        }
+
+        if (currentSlowValue <= 0)
+        {
+            Time.timeScale = 1;
+            currentSlowValue = 0;
+        }
     }
     private void OnTriggerEnter2D(Collider2D other)
     {

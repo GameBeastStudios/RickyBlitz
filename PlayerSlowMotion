@@ -13,8 +13,7 @@ public class PlayerSlowMotionAbility : MonoBehaviour
     [Header("Slo-Mo Bar")]
     public int slowBarMax; //Max time that you can slow down time for
     public int slowBarMin; //Min time that you can slow down time for
-    public float currentSlowValue; //How much time you have left that you can slow down
-    public float timeStart;
+    public float currentSlowValue; //How much time you have left that you can slow down 
 
     void Start()
     {
@@ -23,46 +22,42 @@ public class PlayerSlowMotionAbility : MonoBehaviour
         slowMotionTimer = 0;
         slowBarMax = 15;
         slowBarMin = 0;
-        slowMotionSpeed = 0.5f;
+        slowMotionSpeed = 0.1f;
         currentSlowValue = slowBarMin;
     }
     IEnumerator waiter()
     {
-        for (int i = 0; i < currentSlowValue; i++)
+        Debug.Log("In Waiter");
+        Debug.Log(currentSlowValue);
+
+        while (currentSlowValue > 0)
         {
             if (Input.GetKeyUp(KeyCode.E)) //Reset time once player lets go of key. and then break loop
             {
                 Time.timeScale = 1f;
+                Debug.Log(currentSlowValue);
                 break;
             }
 
-            if (currentSlowValue <= 0)
+            if (Input.GetKeyDown(KeyCode.E) && currentSlowValue <= 0)
             {
                 Time.timeScale = 1f;
                 Debug.Log("You need more time value!"); //*
                 break;
             }
 
-            Time.timeScale = slowMotionSpeed; //Slow Down the game equal to SlowMotionSpeed
+            Time.timeScale = 0.5f; //Slow Down the game equal to SlowMotionSpeed
             currentSlowValue -= 1; //Decrease the seconds that you can slow down for
 
-            yield return new WaitForSecondsRealtime(1); //Wait 1 second
+            //Begin Raw Test Code
+            Debug.Log("Starting");
+            yield return new WaitForSecondsRealtime(3); //Wait 1 second
+            Debug.Log("Ending");
+            //End Raw Test Code
 
             Debug.Log(currentSlowValue); //*
         }
-        if (Input.GetKeyUp(KeyCode.E))
-        {
-            Time.timeScale = 1;
-        }
-
-        if (currentSlowValue <= 0)
-        {
-            Time.timeScale = 1;
-            currentSlowValue = 0;
-        }
     }
-
-
 
     public void Update()
     {
@@ -85,6 +80,7 @@ public class PlayerSlowMotionAbility : MonoBehaviour
             currentSlowValue = 0;
         }
     }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (currentSlowValue < slowBarMax)
